@@ -10,8 +10,8 @@ class Patient(models.Model):
     password=models.CharField(max_length=100)
     name=models.CharField(max_length=50)
     age=models.IntegerField()
-    doctor=models.ManyToManyField(Doctor,on_delete=models.CASCADE,
-                                  related_name='doctors',null=True,blank=True)
+    doctor=models.ManyToManyField(Doctor,
+                                  related_name='doctors')
     
 
     def save(self, *args, **kwargs):
@@ -24,7 +24,7 @@ class Patient(models.Model):
         
 class Rating(models.Model):
     rating=models.FloatField(default=0.00)
-    patient=models.ForeignKey(Patient,on_delete=models.CASCADE)
+    patient=models.ForeignKey(Patient,on_delete=models.CASCADE,related_name='patient')
     doctor=models.ForeignKey(Doctor,on_delete=models.CASCADE,related_name="rating")
 
 

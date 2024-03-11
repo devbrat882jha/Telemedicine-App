@@ -37,6 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'Patients',
+    'Pharma',
+    'Doctors',
+    'Home'
 ]
 
 MIDDLEWARE = [
@@ -73,12 +77,23 @@ WSGI_APPLICATION = 'TeleApp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+import os
+
+db_user=os.environ.get('DB_USER')
+db_password=os.environ.get('DB_PASS')
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'teleMed',
+        'USER': f'{db_user}',
+        'PASSWORD': f'{db_password}',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
+
 
 
 # Password validation

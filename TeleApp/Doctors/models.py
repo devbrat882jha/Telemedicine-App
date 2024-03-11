@@ -1,7 +1,7 @@
 from django.db import models
-from Patients.models import Patient,Rating
+from Patients.models import *
 from django.contrib.auth.hashers import make_password
-from django.db.models import Avg
+
 
 # Create your models here.
 
