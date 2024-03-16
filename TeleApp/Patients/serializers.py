@@ -1,27 +1,47 @@
 from rest_framework import serializers
 from .models import Patient
+import re
+
+
+def password_validator(password):
+    pattern = "^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]+$"
+    match = re.match(pattern, password)
+    if not match:
+        raise  serializers.ValidationError(
+            'Password must contain at least one number and one of the following special characters: !@#$%^&*')
+    
 
 
 class PatientSerializer(serializers.ModelSerializer):
-  
+   confirm_password = serializers.CharField(write_only=True)
+   password=serializers.CharField(validators=[password_validator])
    class Meta:
         model = Patient
-        fields="__all__"
+        fields=['id','email','password','name','age','doctor','confirm_password']
     
-class PatientLoginSerializer(serializers.ModelSerializer):
-    confirm_password=serializers.CharField(max_length=100)
-    class Meta:
-        model=Patient
-        fields=['email','password','confirm_password']
-    
-    #object level custom validatioon
-    def validate(self,data):
+   
+   #object level validation
+   def validate(self,data):
         password=data.get('password')
         confirm_password=data.get('confirm_password')
-
-        if password==confirm_password:
-            return data
-        else:
+        if password!=confirm_password:
             raise serializers.ValidationError("Passwords do not match.")
+        #confirm field is not required in database
+        data.pop('confirm_password')
+        return data
+    
+#we did not used model serialiser as it would have put validators of model fields 
+   
+class PatientLoginSerializer(serializers.Serializer):
+    email=serializers.CharField(max_length=50)
+    password=serializers.CharField(max_length=50)
+
+class PatientProfileSerializer(serializers.Serializer):
+   class Meta:
+       model=Patient
+       fileds="__all__"
+
+    
+   
         
     

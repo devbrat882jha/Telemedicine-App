@@ -3,5 +3,8 @@ from . import views
 
 urlpatterns = [
     
-    path('registration',views.PatientRegistration.as_view(),name='patient-registration')
+    path('registration',views.PatientRegistration.as_view(),name='patient-registration'),
+    path('login',views.PatientLogin.as_view(),name='patient-login'),
+    path('<int:pk>',views.PatientProfile.as_view()),
+    
 ]

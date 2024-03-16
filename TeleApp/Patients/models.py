@@ -11,7 +11,7 @@ class Patient(models.Model):
     name=models.CharField(max_length=50)
     age=models.IntegerField()
     doctor=models.ManyToManyField(Doctor,
-                                  related_name='doctors')
+                                  related_name='doctors',null=True,blank=True)
     
 
     def save(self, *args, **kwargs):
