@@ -13,7 +13,6 @@ class Patient(models.Model):
     doctor=models.ManyToManyField(Doctor,
                                   related_name='doctors',null=True,blank=True)
     
-
     def save(self, *args, **kwargs):
         # Hash the password before saving
         
@@ -22,6 +21,8 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.name
+    
+
         
 class Rating(models.Model):
     rating=models.FloatField(default=0.00)

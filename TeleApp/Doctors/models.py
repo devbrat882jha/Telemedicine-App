@@ -1,19 +1,24 @@
 from django.db import models
+
 from Patients.models import *
 from django.contrib.auth.hashers import make_password
 
 
+
 # Create your models here.
 
-
+    
+class Department(models.Model):
+    name=models.CharField(max_length=50)
+    
 class Doctor(models.Model):
     name=models.CharField(max_length=50)
     total_experience=models.IntegerField(default=0)
     email=models.CharField(max_length=100)
     password=models.CharField(max_length=100)
     average_rating = models.FloatField(default=0)
+    department=models.ForeignKey(Department,on_delete=models.SET_NULL,related_name='department',null=True,blank=True)
     
-
     def save(self, *args, **kwargs):
         # Hash the password before saving
         self.password = make_password(self.password)

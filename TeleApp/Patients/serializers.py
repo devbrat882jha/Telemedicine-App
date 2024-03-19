@@ -36,10 +36,24 @@ class PatientLoginSerializer(serializers.Serializer):
     email=serializers.CharField(max_length=50)
     password=serializers.CharField(max_length=50)
 
-class PatientProfileSerializer(serializers.Serializer):
+class PatientProfileSerializer(serializers.ModelSerializer):
    class Meta:
        model=Patient
-       fileds="__all__"
+       exclude = ['password']
+
+
+class PaymentSerializer(serializers.Serializer):
+    amount=serializers.FloatField()
+    currency=serializers.CharField(max_length=10,default='INR')
+    receipt = serializers.CharField(max_length=255)
+
+    def update(self, data):
+       amount=data.get('amount')*1000
+       return data
+    
+
+
+    
 
     
    
