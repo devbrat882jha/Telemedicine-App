@@ -41,6 +41,13 @@ class PatientProfileSerializer(serializers.ModelSerializer):
        model=Patient
        exclude = ['password']
 
+class PatientUpdateSerializer(serializers.Serializer):
+    email=serializers.CharField(max_length=50)
+    name=serializers.CharField(max_length=50)
+    age=serializers.IntegerField()
+
+
+
 
 class PaymentSerializer(serializers.Serializer):
     amount=serializers.FloatField()

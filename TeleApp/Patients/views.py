@@ -9,6 +9,8 @@ from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from Doctors.models import Doctor
 import razorpay
+import hmac
+import hashlib
 
 
 def get_tokens_for_user(patient):
@@ -65,7 +67,7 @@ class PatientLogin(APIView):
 #TokenAuthentication class is for django inbuilt authentication
 class PatientProfile(APIView):
     permission_classes=[IsAuthenticated]
-    def get(self,request,pk):
+    def get(self,request,pk,*args, **kwargs):
         patient=Patient.objects.get(id=pk)
         if patient:
             serializer=PatientProfileSerializer(patient)
@@ -75,38 +77,69 @@ class PatientProfile(APIView):
         if query_param:
             doctors=Doctor.objects.filter(department__name__istartswith=query_param).order_by("-average_rating").values('name')
             return Response(doctors,status=status.HTTP_200_OK)
+        
+    def put(self,request,pk,*args, **kwargs):
+        serializer=PatientUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            patient=Patient.objects.get(id=pk)
+            patient.email=serializer.validated_data['email']
+            patient.name=serializer.validated_data['name']
+            patient.age=serializer.validated_data['age']
+            patient.save()
+            return Response({"status":"success"},status=status.HTTP_200_OK)
+
  
 import os
 
 RAZOR_KEY_ID=os.environ.get('razor_id')
 RAZOR_KEY_SECRET=os.environ.get('razor_key')
-
+client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+client.set_app_details({"title" : "Django", "version" : "5.0.3"})
 
 class PaymentApiView(APIView):
     permission_classes=[IsAuthenticated]
 
-    def post(self,request,pk):
+    def post(self,request,pk,*args, **kwargs):
         serializer=PaymentSerializer(data=request.data)
         if serializer.is_valid():
             amount=serializer.validated_data['amount']
             currency=serializer.validated_data['currency']
             reciept=serializer.validated_data['receipt']
             try:
-                client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
-                client.set_app_details({"title" : "Django", "version" : "5.0.3"})
                 data = { "amount": amount, "currency": currency, "receipt": reciept}
                 payment = client.order.create(data=data)
                 #id for newly created payment
-                payment_id=payment['id']
-                callback_url=r"http://127.0.0.1:8000/patients/1/manage-appointments/payment/success"
-                data['payment_id']=payment_id
+                razorpay_order_id=payment['id']
+                callback_url=f"http://127.0.0.1:8000/patients/{pk}/manage-appointments/payment/handler"
+                data['razorpay_order_id']=razorpay_order_id
                 data['callback_url']=callback_url
                 data['merchant_id']=RAZOR_KEY_ID
                 return Response(data,status=status.HTTP_201_CREATED)
             except Exception as e:
                 # Handle any exceptions
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#after the successful payment razor pay will send a post request to call back url           
+class PaymentHandler(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request,pk,*args, **kwargs):
+        payment_id = request.data.get('razorpay_payment_id')
+        razorpay_order_id = request.data.get('razorpay_order_id')
+        signature = request.data.get('razorpay_signature')
+        result=client.utility.verify_payment_signature({
+        'razorpay_order_id': razorpay_order_id,
+        'razorpay_payment_id': payment_id,
+        'razorpay_signature': signature
+        })
+        if result:
+            print("success")
+            return Response({"status":"success"})
             
+        else:
+            print("failed")
+            return Response({"status":"failed"},status=status.HTTP_400_BAD_REQUEST)
+        
+                    
 
 
 
